@@ -4,6 +4,7 @@ import { TrendingUp, Star } from "lucide-react";
 import { Reveal, WordReveal, Counter, Tilt } from "@/components/motion";
 import { CtaButton } from "@/components/site";
 import { services, FinalCta } from "@/components/sections";
+import { Ecosystem } from "@/components/ecosystem";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -195,5 +196,5 @@ function Testimonials() {
 }
 
 function Home() {
-  return (<><Hero /><Marquee /><Services /><Stats /><Feature /><Process /><Testimonials /><FinalCta /></>);
+  return (<><Hero /><Marquee /><Services /><Ecosystem /><Stats /><Feature /><Process /><Testimonials /><FinalCta /></>);
 }
