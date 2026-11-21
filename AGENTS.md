@@ -28,3 +28,4 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+- Shared page sections live in src/components (not exported from route files) so route code-splitting stays safe.
