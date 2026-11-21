@@ -1,0 +1,163 @@
+import { useEffect, useRef } from "react";
+
+export type GlobePlace = { name: string; lng: number; lat: number };
+
+type V3 = [number, number, number];
+const RAD = Math.PI / 180;
+const toV = (lng: number, lat: number): V3 => [Math.cos(lat * RAD) * Math.sin(lng * RAD), Math.sin(lat * RAD), Math.cos(lat * RAD) * Math.cos(lng * RAD)];
+
+function slerp(a: V3, b: V3, t: number): V3 {
+  const d = Math.min(1, Math.max(-1, a[0] * b[0] + a[1] * b[1] + a[2] * b[2]));
+  const w = Math.acos(d);
+  if (w < 1e-6) return a;
+  const s = Math.sin(w);
+  const k1 = Math.sin((1 - t) * w) / s, k2 = Math.sin(t * w) / s;
+  return [a[0] * k1 + b[0] * k2, a[1] * k1 + b[1] * k2, a[2] * k1 + b[2] * k2];
+}
+
+/** Dotted, spinning, draggable globe with animated arcs from a hub to other places. Canvas only, runs after mount. */
+export function Globe({ hub, places, className = "" }: { hub: GlobePlace; places: GlobePlace[]; className?: string }) {
+  const ref = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = ref.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    let raf = 0;
+    let alive = true;
+    const css = getComputedStyle(document.documentElement);
+    const lime = css.getPropertyValue("--lime").trim() || "#C6FF00";
+    const fg = css.getPropertyValue("--foreground").trim() || "#fff";
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    let rot = -hub.lng * RAD + 0.5;
+    const tilt = -0.32;
+    let drag: { x: number; rot: number } | null = null;
+    let vel = 0;
+
+    const onDown = (e: PointerEvent) => { drag = { x: e.clientX, rot }; canvas.setPointerCapture(e.pointerId); };
+    const onMove = (e: PointerEvent) => { if (!drag) return; const nr = drag.rot + (e.clientX - drag.x) * 0.006; vel = nr - rot; rot = nr; };
+    const onUp = () => { drag = null; };
+    canvas.addEventListener("pointerdown", onDown);
+    canvas.addEventListener("pointermove", onMove);
+    canvas.addEventListener("pointerup", onUp);
+    canvas.addEventListener("pointercancel", onUp);
+
+    let dots: V3[] = [];
+    (async () => {
+      const [{ geoEquirectangular, geoPath }, topo, landMod] = await Promise.all([
+        import("d3-geo"), import("topojson-client"), import("world-atlas/land-110m.json"),
+      ]);
+      const land = (landMod as { default?: unknown }).default ?? landMod;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const geo = topo.feature(land as any, (land as any).objects.land);
+      const W = 720, H = 360;
+      const off = document.createElement("canvas"); off.width = W; off.height = H;
+      const octx = off.getContext("2d");
+      if (!octx) return;
+      const proj = geoEquirectangular().scale(W / (2 * Math.PI)).translate([W / 2, H / 2]);
+      octx.fillStyle = "#000"; octx.beginPath();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      geoPath(proj, octx).call(null, geo as any);
+      octx.fill();
+      const img = octx.getImageData(0, 0, W, H).data;
+      const out: V3[] = [];
+      const step = 1.5;
+      for (let lat = -84; lat <= 84; lat += step) {
+        const n = Math.max(1, Math.round((360 / step) * Math.cos(lat * RAD)));
+        for (let i = 0; i < n; i++) {
+          const lng = -180 + (i * 360) / n;
+          const px = Math.floor(((lng + 180) / 360) * W), py = Math.floor(((90 - lat) / 180) * H);
+          if (img[(py * W + px) * 4 + 3]! > 100) out.push(toV(lng, lat));
+        }
+      }
+      if (alive) dots = out;
+    })();
+
+    const hubV = toV(hub.lng, hub.lat);
+    const arcs = places.map((p, i) => ({ to: toV(p.lng, p.lat), place: p, offset: i * 0.37 }));
+
+    const start = performance.now();
+    const draw = (now: number) => {
+      const t = (now - start) / 1000;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const w = canvas.clientWidth, h = canvas.clientHeight;
+      if (canvas.width !== Math.round(w * dpr)) { canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr); }
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, w, h);
+      const R = Math.min(w, h) * 0.44, cx = w / 2, cy = h / 2;
+
+      if (!drag) { if (Math.abs(vel) > 0.0005) { rot += vel; vel *= 0.95; } else if (!reduce) rot += 0.0016; }
+      const cr = Math.cos(rot), sr = Math.sin(rot), ct = Math.cos(tilt), st = Math.sin(tilt);
+      const tf = (v: V3): V3 => { const x = v[0] * cr + v[2] * sr, z0 = -v[0] * sr + v[2] * cr; const y = v[1] * ct - z0 * st, z = v[1] * st + z0 * ct; return [x, y, z]; };
+
+      // sphere body + rim glow
+      const g = ctx.createRadialGradient(cx - R * 0.3, cy - R * 0.4, R * 0.1, cx, cy, R);
+      g.addColorStop(0, "rgba(198,255,0,0.10)"); g.addColorStop(0.7, "rgba(20,24,16,0.85)"); g.addColorStop(1, "rgba(10,12,8,0.95)");
+      ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.fillStyle = g; ctx.fill();
+      ctx.save(); ctx.shadowColor = lime; ctx.shadowBlur = 40; ctx.strokeStyle = lime; ctx.globalAlpha = 0.35; ctx.lineWidth = 1.2; ctx.stroke(); ctx.restore();
+
+      // land dots
+      ctx.fillStyle = fg;
+      for (const d of dots) {
+        const p = tf(d);
+        if (p[2] <= 0) continue;
+        ctx.globalAlpha = 0.15 + p[2] * 0.55;
+        ctx.fillRect(cx + p[0] * R - 0.8, cy - p[1] * R - 0.8, 1.6, 1.6);
+      }
+      ctx.globalAlpha = 1;
+
+      // arcs
+      const SEG = 60;
+      ctx.lineCap = "round";
+      for (const a of arcs) {
+        const cyc = ((t * 0.28 + a.offset) % 1.6);
+        const head = Math.min(1, cyc / 0.9), tail = Math.max(0, (cyc - 0.9) / 0.7);
+        if (head <= tail) continue;
+        const ang = Math.acos(Math.min(1, hubV[0] * a.to[0] + hubV[1] * a.to[1] + hubV[2] * a.to[2]));
+        const lift = 0.12 + ang * 0.16;
+        let prev: [number, number, boolean] | null = null;
+        for (let i = Math.floor(tail * SEG); i <= Math.ceil(head * SEG); i++) {
+          const u = Math.min(head, Math.max(tail, i / SEG));
+          const v = slerp(hubV, a.to, u); const e = 1 + lift * Math.sin(Math.PI * u);
+          const p = tf([v[0] * e, v[1] * e, v[2] * e]);
+          const vis = p[2] > 0 || p[0] * p[0] + p[1] * p[1] > 1;
+          const sx = cx + p[0] * R, sy = cy - p[1] * R;
+          if (prev && prev[2] && vis) {
+            ctx.beginPath(); ctx.moveTo(prev[0], prev[1]); ctx.lineTo(sx, sy);
+            ctx.strokeStyle = lime; ctx.globalAlpha = 0.25 + 0.75 * ((u - tail) / Math.max(0.001, head - tail)); ctx.lineWidth = 1.8; ctx.stroke();
+          }
+          prev = [sx, sy, vis];
+        }
+        ctx.globalAlpha = 1;
+        if (head >= 1) marker(a.to, a.place.name, false);
+      }
+      marker(hubV, hub.name, true);
+
+      function marker(v: V3, label: string, isHub: boolean) {
+        const p = tf(v);
+        if (p[2] <= 0.05) return;
+        const sx = cx + p[0] * R, sy = cy - p[1] * R;
+        const pulse = (t * (isHub ? 0.8 : 1.2)) % 1;
+        ctx.beginPath(); ctx.arc(sx, sy, (isHub ? 6 : 4) + pulse * (isHub ? 18 : 10), 0, Math.PI * 2);
+        ctx.strokeStyle = lime; ctx.globalAlpha = (1 - pulse) * p[2]; ctx.lineWidth = 1.5; ctx.stroke();
+        ctx.beginPath(); ctx.arc(sx, sy, isHub ? 5 : 3, 0, Math.PI * 2); ctx.fillStyle = lime; ctx.globalAlpha = p[2]; ctx.fill();
+        ctx.font = `${isHub ? 600 : 500} ${isHub ? 13 : 11}px Manrope, sans-serif`;
+        ctx.fillStyle = isHub ? lime : fg; ctx.globalAlpha = p[2] * (isHub ? 1 : 0.75);
+        ctx.fillText(label, sx + (isHub ? 12 : 8), sy + 4);
+        ctx.globalAlpha = 1;
+      }
+
+      if (alive) raf = requestAnimationFrame(draw);
+    };
+    raf = requestAnimationFrame(draw);
+    return () => {
+      alive = false; cancelAnimationFrame(raf);
+      canvas.removeEventListener("pointerdown", onDown); canvas.removeEventListener("pointermove", onMove);
+      canvas.removeEventListener("pointerup", onUp); canvas.removeEventListener("pointercancel", onUp);
+    };
+  }, [hub, places]);
+
+  return <canvas ref={ref} aria-label="Spinning globe showing the places we work with" role="img" className={`h-full w-full cursor-grab touch-pan-y active:cursor-grabbing ${className}`} />;
+}

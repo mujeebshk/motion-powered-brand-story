@@ -137,3 +137,9 @@
 @keyframes marquee { to { transform: translateX(-50%); } }
 @keyframes spin-slow { to { transform: rotate(360deg); } }
 @utility spin-slow { animation: spin-slow 18s linear infinite; }
+@utility marquee-reverse { animation: marquee-reverse 36s linear infinite; }
+@keyframes marquee-reverse { from { transform: translateX(-50%); } to { transform: translateX(0); } }
+@utility bg-dots {
+  background-image: radial-gradient(circle, color-mix(in oklab, var(--foreground) 14%, transparent) 1px, transparent 1.5px);
+  background-size: 28px 28px;
+}
