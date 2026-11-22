@@ -15,15 +15,16 @@ function slerp(a: V3, b: V3, t: number): V3 {
   return [a[0] * k1 + b[0] * k2, a[1] * k1 + b[1] * k2, a[2] * k1 + b[2] * k2];
 }
 
-/** Dotted, spinning, draggable globe with animated arcs from a hub to other places. Canvas only, runs after mount. */
-export function Globe({ hub, places, className = "" }: { hub: GlobePlace; places: GlobePlace[]; className?: string }) {
+/** Dotted, spinning, draggable globe with animated arcs travelling between places worldwide. Canvas only, runs after mount. */
+export function Globe({ places, className = "" }: { places: GlobePlace[]; className?: string }) {
   const ref = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const canvas = ref.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    const ctx0 = canvas.getContext("2d");
+    if (!ctx0) return;
+    const ctx: CanvasRenderingContext2D = ctx0;
     let raf = 0;
     let alive = true;
     const css = getComputedStyle(document.documentElement);
@@ -31,7 +32,7 @@ export function Globe({ hub, places, className = "" }: { hub: GlobePlace; places
     const fg = css.getPropertyValue("--foreground").trim() || "#fff";
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    let rot = -hub.lng * RAD + 0.5;
+    let rot = 0.4;
     const tilt = -0.32;
     let drag: { x: number; rot: number } | null = null;
     let vel = 0;
@@ -64,7 +65,7 @@ export function Globe({ hub, places, className = "" }: { hub: GlobePlace; places
       const img = octx.getImageData(0, 0, W, H).data;
       const out: V3[] = [];
       const step = 1.5;
-      for (let lat = -84; lat <= 84; lat += step) {
+      for (let lat = -58; lat <= 84; lat += step) {
         const n = Math.max(1, Math.round((360 / step) * Math.cos(lat * RAD)));
         for (let i = 0; i < n; i++) {
           const lng = -180 + (i * 360) / n;
@@ -75,8 +76,9 @@ export function Globe({ hub, places, className = "" }: { hub: GlobePlace; places
       if (alive) dots = out;
     })();
 
-    const hubV = toV(hub.lng, hub.lat);
-    const arcs = places.map((p, i) => ({ to: toV(p.lng, p.lat), place: p, offset: i * 0.37 }));
+    const pv = places.map((p) => toV(p.lng, p.lat));
+    const n = pv.length;
+    const arcs = pv.flatMap((from, i) => [5].map((k) => ({ from, to: pv[(i + k) % n]!, offset: (i * 0.41) % 1.6 })));
 
     const start = performance.now();
     const draw = (now: number) => {
@@ -86,7 +88,7 @@ export function Globe({ hub, places, className = "" }: { hub: GlobePlace; places
       if (canvas.width !== Math.round(w * dpr)) { canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr); }
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, w, h);
-      const R = Math.min(w, h) * 0.44, cx = w / 2, cy = h / 2;
+      const R = Math.min(w, h) * 0.4, cx = w / 2, cy = h / 2;
 
       if (!drag) { if (Math.abs(vel) > 0.0005) { rot += vel; vel *= 0.95; } else if (!reduce) rot += 0.0016; }
       const cr = Math.cos(rot), sr = Math.sin(rot), ct = Math.cos(tilt), st = Math.sin(tilt);
@@ -115,12 +117,12 @@ export function Globe({ hub, places, className = "" }: { hub: GlobePlace; places
         const cyc = ((t * 0.28 + a.offset) % 1.6);
         const head = Math.min(1, cyc / 0.9), tail = Math.max(0, (cyc - 0.9) / 0.7);
         if (head <= tail) continue;
-        const ang = Math.acos(Math.min(1, hubV[0] * a.to[0] + hubV[1] * a.to[1] + hubV[2] * a.to[2]));
-        const lift = 0.12 + ang * 0.16;
+        const ang = Math.acos(Math.min(1, a.from[0] * a.to[0] + a.from[1] * a.to[1] + a.from[2] * a.to[2]));
+        const lift = 0.04 + ang * 0.07;
         let prev: [number, number, boolean] | null = null;
         for (let i = Math.floor(tail * SEG); i <= Math.ceil(head * SEG); i++) {
           const u = Math.min(head, Math.max(tail, i / SEG));
-          const v = slerp(hubV, a.to, u); const e = 1 + lift * Math.sin(Math.PI * u);
+          const v = slerp(a.from, a.to, u); const e = 1 + lift * Math.sin(Math.PI * u);
           const p = tf([v[0] * e, v[1] * e, v[2] * e]);
           const vis = p[2] > 0 || p[0] * p[0] + p[1] * p[1] > 1;
           const sx = cx + p[0] * R, sy = cy - p[1] * R;
@@ -131,22 +133,25 @@ export function Globe({ hub, places, className = "" }: { hub: GlobePlace; places
           prev = [sx, sy, vis];
         }
         ctx.globalAlpha = 1;
-        if (head >= 1) marker(a.to, a.place.name, false);
+        if (head >= 1 && tail < 0.5) ripple(a.to, (cyc - 0.9) / 0.35);
       }
-      marker(hubV, hub.name, true);
+      pv.forEach((v, i) => dot(v, ((t * 0.7 + i * 0.13) % 1)));
 
-      function marker(v: V3, label: string, isHub: boolean) {
+      function dot(v: V3, pulse: number) {
         const p = tf(v);
         if (p[2] <= 0.05) return;
         const sx = cx + p[0] * R, sy = cy - p[1] * R;
-        const pulse = (t * (isHub ? 0.8 : 1.2)) % 1;
-        ctx.beginPath(); ctx.arc(sx, sy, (isHub ? 6 : 4) + pulse * (isHub ? 18 : 10), 0, Math.PI * 2);
-        ctx.strokeStyle = lime; ctx.globalAlpha = (1 - pulse) * p[2]; ctx.lineWidth = 1.5; ctx.stroke();
-        ctx.beginPath(); ctx.arc(sx, sy, isHub ? 5 : 3, 0, Math.PI * 2); ctx.fillStyle = lime; ctx.globalAlpha = p[2]; ctx.fill();
-        ctx.font = `${isHub ? 600 : 500} ${isHub ? 13 : 11}px Manrope, sans-serif`;
-        ctx.fillStyle = isHub ? lime : fg; ctx.globalAlpha = p[2] * (isHub ? 1 : 0.75);
-        ctx.fillText(label, sx + (isHub ? 12 : 8), sy + 4);
+        ctx.beginPath(); ctx.arc(sx, sy, 3 + pulse * 8, 0, Math.PI * 2);
+        ctx.strokeStyle = lime; ctx.globalAlpha = (1 - pulse) * p[2] * 0.7; ctx.lineWidth = 1.2; ctx.stroke();
+        ctx.beginPath(); ctx.arc(sx, sy, 2.5, 0, Math.PI * 2); ctx.fillStyle = lime; ctx.globalAlpha = p[2]; ctx.fill();
         ctx.globalAlpha = 1;
+      }
+      function ripple(v: V3, k: number) {
+        if (k < 0 || k > 1) return;
+        const p = tf(v);
+        if (p[2] <= 0.05) return;
+        ctx.beginPath(); ctx.arc(cx + p[0] * R, cy - p[1] * R, 4 + k * 22, 0, Math.PI * 2);
+        ctx.strokeStyle = lime; ctx.globalAlpha = (1 - k) * p[2]; ctx.lineWidth = 2; ctx.stroke(); ctx.globalAlpha = 1;
       }
 
       if (alive) raf = requestAnimationFrame(draw);
@@ -157,7 +162,7 @@ export function Globe({ hub, places, className = "" }: { hub: GlobePlace; places
       canvas.removeEventListener("pointerdown", onDown); canvas.removeEventListener("pointermove", onMove);
       canvas.removeEventListener("pointerup", onUp); canvas.removeEventListener("pointercancel", onUp);
     };
-  }, [hub, places]);
+  }, [places]);
 
-  return <canvas ref={ref} aria-label="Spinning globe showing the places we work with" role="img" className={`h-full w-full cursor-grab touch-pan-y active:cursor-grabbing ${className}`} />;
+  return <canvas ref={ref} aria-label="Spinning globe with glowing lines connecting cities around the world" role="img" className={`h-full w-full cursor-grab touch-pan-y active:cursor-grabbing ${className}`} />;
 }

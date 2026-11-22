@@ -29,3 +29,5 @@ use the editor.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
 - Shared page sections live in src/components (not exported from route files) so route code-splitting stays safe.
+- Tool/platform logos are listed once in src/components/tools.ts and reused by every section that shows them, so adding a logo updates the whole site.
+- The globe is a custom canvas renderer (src/components/globe.tsx) that loads d3-geo/topojson/world-atlas inside useEffect, keeping SSR free of browser-only work.

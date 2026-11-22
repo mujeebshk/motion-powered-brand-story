@@ -3,6 +3,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Mail, Phone, MapPin, CheckCircle2 } from "lucide-react";
 import { PageHeader, Reveal } from "@/components/motion";
+import { GlobalReach } from "@/components/global-reach";
 export const Route = createFileRoute("/contact")({
   head: () => ({ meta: [ { title: "Contact — Tech Marketics" }, { name: "description", content: "Book a free strategy call with Tech Marketics and get a custom growth plan." }, { property: "og:title", content: "Contact — Tech Marketics" }, { property: "og:description", content: "Book a free strategy call with Tech Marketics and get a custom growth plan." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" } ] }),
   component: Page,
@@ -27,5 +28,6 @@ function Page() {
             <button className="w-full rounded-full bg-primary py-4 font-semibold text-primary-foreground transition-shadow hover:glow">Send message</button>
           </form>)}
       </Reveal>
-    </section></>);
+    </section>
+    <GlobalReach compact /></>);
 }

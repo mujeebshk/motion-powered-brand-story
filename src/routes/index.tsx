@@ -5,6 +5,8 @@ import { Reveal, WordReveal, Counter, Tilt } from "@/components/motion";
 import { CtaButton } from "@/components/site";
 import { services, FinalCta } from "@/components/sections";
 import { Ecosystem } from "@/components/ecosystem";
+import { GlobalReach } from "@/components/global-reach";
+import { HeroDecor } from "@/components/hero-decor";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -33,6 +35,7 @@ function Hero() {
         <div className="absolute inset-[18%] rounded-full bg-lime/20 blur-[100px]" />
         <div className="absolute inset-[16%] rounded-full border border-primary/30 bg-background shadow-[inset_0_40px_80px_-20px] shadow-primary/40" />
       </motion.div>
+      <HeroDecor />
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="relative mb-8 inline-flex items-center gap-2 rounded-full glass px-4 py-1.5 text-sm">
         <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground">New</span>
         AI-powered growth campaigns
@@ -196,5 +199,5 @@ function Testimonials() {
 }
 
 function Home() {
-  return (<><Hero /><Marquee /><Services /><Ecosystem /><Stats /><Feature /><Process /><Testimonials /><FinalCta /></>);
+  return (<><Hero /><Marquee /><Services /><Ecosystem /><GlobalReach /><Stats /><Feature /><Process /><Testimonials /><FinalCta /></>);
 }
