@@ -7,6 +7,7 @@ import { services, FinalCta } from "@/components/sections";
 import { Ecosystem } from "@/components/ecosystem";
 import { GlobalReach } from "@/components/global-reach";
 import { HeroDecor } from "@/components/hero-decor";
+import { Industries } from "@/components/industries";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -21,8 +22,6 @@ export const Route = createFileRoute("/")({
   }),
   component: Home,
 });
-
-const brands = ["Nexora", "Volume", "Clues", "Rise", "Trace", "Cloudly", "Orbit", "Pulse"];
 
 function Hero() {
   const { scrollY } = useScroll();
@@ -78,19 +77,6 @@ function Dashboard() {
         ))}
       </div>
     </div>
-  );
-}
-
-function Marquee() {
-  return (
-    <section className="border-y border-border py-10">
-      <p className="mb-6 text-center text-sm text-muted-foreground">Trusted by 150+ growing brands</p>
-      <div className="flex overflow-hidden [mask-image:linear-gradient(90deg,transparent,black_20%,black_80%,transparent)]">
-        <div className="flex shrink-0 marquee gap-16 pr-16">
-          {[...brands, ...brands].map((b, i) => <span key={i} className="font-display text-3xl font-bold text-muted-foreground/50">{b}</span>)}
-        </div>
-      </div>
-    </section>
   );
 }
 
@@ -199,5 +185,5 @@ function Testimonials() {
 }
 
 function Home() {
-  return (<><Hero /><Marquee /><Services /><Ecosystem /><GlobalReach /><Stats /><Feature /><Process /><Testimonials /><FinalCta /></>);
+  return (<><Hero /><Industries /><Services /><Ecosystem /><GlobalReach /><Stats /><Feature /><Process /><Testimonials /><FinalCta /></>);
 }
