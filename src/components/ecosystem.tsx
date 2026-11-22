@@ -34,7 +34,7 @@ export function Ecosystem() {
       </Reveal>
 
       <div className="relative mx-auto mt-16 grid max-w-6xl grid-cols-2 gap-4 px-6 md:grid-cols-4 md:gap-5">
-        {tools.map((t, i) => (
+        {tools.slice(0, 8).map((t, i) => (
           <Reveal key={t.name} delay={(i % 4) * 0.08 + Math.floor(i / 4) * 0.05}>
             <Tilt className="group h-full">
               <motion.div
