@@ -20,13 +20,13 @@ export function Industries() {
       <div aria-hidden className="pointer-events-none absolute -bottom-32 -left-32 h-80 w-80 rounded-full bg-lime/10 blur-[110px]" />
       <div aria-hidden className="pointer-events-none absolute -right-32 -top-32 h-80 w-80 rounded-full bg-lime/5 blur-[110px]" />
 
-      <div className="relative mx-auto max-w-4xl text-center">
+      <div className="relative mx-auto max-w-5xl text-center">
         <motion.p
           initial={{ opacity: 0, letterSpacing: "0.6em" }}
           whileInView={{ opacity: 1, letterSpacing: "0.2em" }}
           viewport={{ once: true }}
           transition={{ duration: 1, ease }}
-          className="inline-block rounded-full bg-gradient-to-r from-transparent via-secondary to-transparent px-10 py-1 text-sm font-semibold uppercase text-primary"
+          className="inline-block rounded-full bg-gradient-to-r from-transparent via-secondary to-transparent px-6 py-1 text-xs font-semibold uppercase md:px-10 md:text-sm text-primary"
         >
           Built for ambitious brands
         </motion.p>
@@ -50,9 +50,10 @@ export function Industries() {
         </motion.p>
       </div>
 
-      <ul className="relative mx-auto mt-14 flex max-w-7xl flex-wrap justify-center gap-4">
+      <ul className="relative mx-auto mt-14 flex max-w-7xl flex-wrap justify-center gap-2.5 md:grid md:max-w-4xl md:grid-cols-4 md:gap-3 xl:flex xl:max-w-7xl xl:flex-nowrap xl:gap-2">
         {industries.map(({ name, icon: Icon }, i) => (
           <motion.li
+            className="shrink-0"
             key={name}
             initial={{ opacity: 0, y: 30, scale: 0.9 }}
             whileInView={{ opacity: 1, y: 0, scale: 1 }}
@@ -63,11 +64,11 @@ export function Industries() {
               animate={{ y: [0, -6, 0] }}
               transition={{ duration: 4 + (i % 3), repeat: Infinity, ease: "easeInOut", delay: i * 0.3 }}
               whileHover={{ scale: 1.06, y: -4 }}
-              className="group relative flex cursor-default items-center gap-3 overflow-hidden rounded-full border border-border bg-card/60 px-6 py-3.5 backdrop-blur transition-colors duration-300 hover:border-primary/60 hover:shadow-[var(--glow)]"
+              className="group relative flex cursor-default items-center gap-2 overflow-hidden rounded-full border border-border bg-card/60 px-4 py-2.5 md:gap-2.5 md:justify-center md:px-5 md:py-3 xl:px-3.5 backdrop-blur transition-colors duration-300 hover:border-primary/60 hover:shadow-[var(--glow)]"
             >
               <span aria-hidden className="absolute inset-y-0 -left-1/2 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-primary/20 to-transparent opacity-0 transition-all duration-700 group-hover:left-[120%] group-hover:opacity-100" />
-              <Icon className="h-6 w-6 text-primary transition-transform duration-300 group-hover:-rotate-12 group-hover:scale-110" strokeWidth={2} />
-              <span className="text-lg font-medium text-foreground">{name}</span>
+              <Icon className="h-4 w-4 text-primary md:h-5 md:w-5 transition-transform duration-300 group-hover:-rotate-12 group-hover:scale-110" strokeWidth={2} />
+              <span className="text-sm font-medium text-foreground md:text-base xl:text-[15px]">{name}</span>
             </motion.div>
           </motion.li>
         ))}
