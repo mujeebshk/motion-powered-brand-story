@@ -26,16 +26,40 @@ const industries: { name: string; icon: LucideIcon; blurb: string }[] = [
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
-const grid: Variants = {
-  show: { transition: { staggerChildren: 0.055, delayChildren: 0.25 } },
+const row: Variants = {
+  hidden: { opacity: 0, y: 40, filter: "blur(12px)" },
+  show: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0.9, ease } },
 };
 
-const cell: Variants = {
-  hidden: { opacity: 0, y: 34, scale: 0.92, filter: "blur(10px)" },
-  show: { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", transition: { duration: 0.7, ease } },
-};
+function Card({ name, icon: Icon, blurb, i }: { name: string; icon: LucideIcon; blurb: string; i: number }) {
+  return (
+    <div className="group relative w-[210px] shrink-0 sm:w-[236px]">
+      <div className="relative flex h-full flex-col items-start gap-3 overflow-hidden rounded-2xl border border-border bg-card/60 p-4 backdrop-blur transition-all duration-300 group-hover:-translate-y-1.5 group-hover:border-primary/60 group-hover:shadow-[var(--glow)]">
+        <span aria-hidden className="absolute inset-y-0 -left-1/2 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-primary/25 to-transparent opacity-0 transition-all duration-700 group-hover:left-[120%] group-hover:opacity-100" />
+        <span aria-hidden className="absolute -right-8 -top-8 h-20 w-20 rounded-full bg-lime/0 blur-2xl transition-all duration-500 group-hover:bg-lime/25" />
+
+        <motion.span
+          animate={{ opacity: [0.55, 1, 0.55] }}
+          transition={{ duration: 3.4 + (i % 4) * 0.8, repeat: Infinity, ease: "easeInOut", delay: i * 0.22 }}
+          className="relative inline-flex rounded-xl bg-accent p-2.5 text-accent-foreground transition-transform duration-300 group-hover:-rotate-12 group-hover:scale-110"
+        >
+          <Icon className="h-5 w-5" strokeWidth={2} />
+        </motion.span>
+
+        <span className="relative">
+          <span className="block text-sm font-semibold leading-snug text-foreground">{name}</span>
+          <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">{blurb}</span>
+        </span>
+
+        <span aria-hidden className="mt-auto h-px w-0 self-stretch bg-gradient-to-r from-primary to-transparent transition-all duration-500 group-hover:w-full" />
+      </div>
+    </div>
+  );
+}
 
 export function Industries() {
+  const loop = [...industries, ...industries];
+
   return (
     <section className="relative overflow-hidden border-y border-border px-6 py-24">
       <div aria-hidden className="pointer-events-none absolute -bottom-32 -left-32 h-80 w-80 rounded-full bg-lime/10 blur-[110px]" />
@@ -49,8 +73,8 @@ export function Industries() {
           backgroundImage:
             "linear-gradient(to right, color-mix(in oklab, var(--foreground) 7%, transparent) 1px, transparent 1px), linear-gradient(to bottom, color-mix(in oklab, var(--foreground) 7%, transparent) 1px, transparent 1px)",
           backgroundSize: "56px 56px",
-          maskImage: "radial-gradient(ellipse 80% 70% at 50% 50%, black 30%, transparent 78%)",
-          WebkitMaskImage: "radial-gradient(ellipse 80% 70% at 50% 50%, black 30%, transparent 78%)",
+          maskImage: "radial-gradient(ellipse 90% 80% at 50% 50%, black 30%, transparent 78%)",
+          WebkitMaskImage: "radial-gradient(ellipse 90% 80% at 50% 50%, black 30%, transparent 78%)",
         }}
       />
       <motion.div
@@ -91,37 +115,32 @@ export function Industries() {
         </motion.p>
       </div>
 
-      <motion.ul
-        variants={grid}
+      {/* single animated line covering every industry */}
+      <motion.div
+        variants={row}
         initial="hidden"
         whileInView="show"
         viewport={{ once: true, margin: "-60px" }}
-        className="relative mx-auto mt-14 grid max-w-6xl grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4"
+        className="group relative mt-14 w-full"
       >
-        {industries.map(({ name, icon: Icon, blurb }, i) => (
-          <motion.li key={name} variants={cell} className="group relative h-full">
-            <div className="relative flex h-full flex-col items-start gap-3 overflow-hidden rounded-2xl border border-border bg-card/60 p-4 backdrop-blur transition-all duration-300 group-hover:-translate-y-1.5 group-hover:border-primary/60 group-hover:shadow-[var(--glow)] md:gap-4 md:p-5">
-              <span aria-hidden className="absolute inset-y-0 -left-1/2 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-primary/25 to-transparent opacity-0 transition-all duration-700 group-hover:left-[120%] group-hover:opacity-100" />
-              <span aria-hidden className="absolute -right-8 -top-8 h-20 w-20 rounded-full bg-lime/0 blur-2xl transition-all duration-500 group-hover:bg-lime/25" />
+        <div className="w-full overflow-hidden [mask-image:linear-gradient(90deg,transparent,black_16%,black_84%,transparent)]">
+          <div className="flex w-max gap-4 [animation:marquee_52s_linear_infinite] hover:[animation-play-state:paused]">
+            {loop.map((item, i) => (
+              <Card key={`${item.name}-${i}`} {...item} i={i % industries.length} />
+            ))}
+          </div>
+        </div>
 
-              <motion.span
-                animate={{ opacity: [0.55, 1, 0.55] }}
-                transition={{ duration: 3.4 + (i % 4) * 0.8, repeat: Infinity, ease: "easeInOut", delay: i * 0.22 }}
-                className="relative inline-flex rounded-xl bg-accent p-2.5 text-accent-foreground transition-transform duration-300 group-hover:-rotate-12 group-hover:scale-110 md:p-3"
-              >
-                <Icon className="h-4 w-4 md:h-5 md:w-5" strokeWidth={2} />
-              </motion.span>
-
-              <span className="relative">
-                <span className="block text-sm font-semibold leading-snug text-foreground md:text-base">{name}</span>
-                <span className="mt-1 block text-xs leading-relaxed text-muted-foreground md:text-[13px]">{blurb}</span>
-              </span>
-
-              <span aria-hidden className="mt-auto h-px w-0 self-stretch bg-gradient-to-r from-primary to-transparent transition-all duration-500 group-hover:w-full" />
-            </div>
-          </motion.li>
-        ))}
-      </motion.ul>
+        {/* rail line under the cards */}
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 -bottom-6 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+        <motion.div
+          aria-hidden
+          initial={{ x: "-20%" }}
+          animate={{ x: "120%" }}
+          transition={{ duration: 7, repeat: Infinity, ease: "linear" }}
+          className="pointer-events-none absolute -bottom-6 h-px w-1/4 bg-gradient-to-r from-transparent via-primary to-transparent"
+        />
+      </motion.div>
     </section>
   );
 }
