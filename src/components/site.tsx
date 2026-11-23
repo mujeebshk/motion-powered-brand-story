@@ -7,7 +7,7 @@ import { Magnetic } from "./motion";
 
 const nav = [
   { to: "/", label: "Home" }, { to: "/services", label: "Services" }, { to: "/work", label: "Work" },
-  { to: "/pricing", label: "Pricing" }, { to: "/about", label: "About" }, { to: "/contact", label: "Contact" },
+  { to: "/pricing", label: "Pricing" }, { to: "/about", label: "About" }, { to: "/contact", label: "Contact" }, { to: "/blog", label: "Blog" },
 ] as const;
 
 export function CtaButton({ children, to = "/contact", variant = "solid" }: { children: React.ReactNode; to?: "/contact" | "/work" | "/services" | "/pricing"; variant?: "solid" | "ghost" }) {
