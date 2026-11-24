@@ -1,4 +1,4 @@
-import smmCover from "@/assets/blog/social-media-marketing-cover.webp.asset.json";
+const photo = (id: string, w = 1600) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&q=80`;
 
 export type Block =
   | { type: "h2"; id: string; text: string }
@@ -7,7 +7,9 @@ export type Block =
   | { type: "steps"; items: { t: string; d: string }[] }
   | { type: "quote"; text: string }
   | { type: "stats"; items: { v: string; l: string }[] }
-  | { type: "tip"; text: string };
+  | { type: "tip"; text: string }
+  | { type: "image"; src: string; alt: string; caption: string }
+  | { type: "gallery"; items: { src: string; alt: string }[] };
 
 export type Post = {
   slug: string;
@@ -18,6 +20,7 @@ export type Post = {
   readTime: string;
   author: string;
   cover: string;
+  ogImage: string;
   coverAlt: string;
   tags: string[];
   body: Block[];
@@ -33,8 +36,9 @@ export const posts: Post[] = [
     date: "Nov 23, 2026",
     readTime: "8 min read",
     author: "Tech Marketics Team",
-    cover: smmCover.url,
-    coverAlt: "Glowing smartphone surrounded by lime likes, comments, shares and a rising growth chart",
+    cover: photo("1611926653458-09294b3142bf", 2000),
+    ogImage: "https://images.unsplash.com/photo-1611926653458-09294b3142bf?auto=format&fit=crop&w=1200&h=630&q=80",
+    coverAlt: "Smartphone screen showing a folder of social media apps",
     tags: ["SMM", "Instagram", "Content Strategy", "Paid Social", "Growth"],
     body: [
       { type: "p", text: "Every day, more than five billion people open a social app. They scroll, watch, comment, save — and increasingly, they buy. For a modern brand, social media is not just a place to post updates. It is your storefront, your customer service desk, your word-of-mouth engine and your most powerful advertising channel, all in one." },
@@ -42,10 +46,12 @@ export const posts: Post[] = [
       { type: "stats", items: [{ v: "5B+", l: "people use social media" }, { v: "2h 20m", l: "average daily time spent" }, { v: "76%", l: "bought after seeing a post" }] },
 
       { type: "h2", id: "what-is-smm", text: "What is social media marketing?" },
+      { type: "image", src: photo("1563986768609-322da13575f3"), alt: "Person scrolling a social feed on a phone while working on a laptop", caption: "Your customers are already scrolling — the question is whether they see you." },
       { type: "p", text: "Social media marketing is the practice of using social platforms to build awareness, grow an audience, create relationships and drive sales. It combines two sides: organic marketing — the content you publish and the community you build for free — and paid social, where you pay platforms to put your message in front of precisely targeted people." },
       { type: "p", text: "The best results always come from combining both. Organic content builds trust and gives your brand a personality. Paid campaigns take what works and scale it to thousands, or millions, of the right people." },
 
       { type: "h2", id: "why-it-matters", text: "Why your brand cannot ignore it" },
+      { type: "image", src: photo("1522202176988-66273c2fd55f"), alt: "Three young colleagues laughing together around laptops", caption: "Social turns brands into conversations people actually enjoy." },
       { type: "list", items: [
         "Discovery happens on social first — younger buyers now search TikTok and Instagram before Google.",
         "It builds trust at scale — reviews, comments and creator content act as public proof.",
@@ -55,6 +61,7 @@ export const posts: Post[] = [
       ] },
 
       { type: "h2", id: "choose-platforms", text: "Choose the right platforms" },
+      { type: "image", src: photo("1512941937669-90a1b58e7e9c"), alt: "Close-up of a phone home screen with Facebook, Instagram and YouTube apps", caption: "Pick the platforms where your audience already lives." },
       { type: "p", text: "You do not need to be everywhere. You need to be where your customers already spend their time — and do it well. Here is a quick way to think about each platform:" },
       { type: "steps", items: [
         { t: "Instagram", d: "Visual brands, lifestyle, fashion, food, beauty and local businesses. Reels drive reach; Stories drive loyalty." },
@@ -65,6 +72,7 @@ export const posts: Post[] = [
       ] },
 
       { type: "h2", id: "content-strategy", text: "Build a content strategy that converts" },
+      { type: "image", src: photo("1432888498266-38ffec3eaf0a"), alt: "Marketer sketching a content plan on paper next to a smartphone", caption: "Every great feed starts with a plan on paper." },
       { type: "p", text: "Great social content is not about posting more — it is about posting with purpose. We plan every month around content pillars: three to five recurring themes that reflect what your audience cares about and what your brand stands for." },
       { type: "list", items: [
         "Educate — tips, how-tos and myth-busting that make your audience smarter.",
@@ -77,10 +85,12 @@ export const posts: Post[] = [
       { type: "p", text: "Short-form video is the single biggest growth lever right now. Reels, Shorts and TikToks consistently reach two to three times more people than static images. Pair them with carousels for saves, and Stories for daily connection with your loyal followers." },
 
       { type: "h2", id: "community", text: "Grow a real community" },
+      { type: "image", src: photo("1600880292203-757bb62b4baf"), alt: "Two colleagues high-fiving across a desk", caption: "Real relationships beat vanity metrics every time." },
       { type: "p", text: "Algorithms reward conversation. Reply to every comment in the first hour, answer DMs quickly, ask questions in your captions and feature your customers' content. A smaller, engaged community will always outsell a large, silent one." },
       { type: "quote", text: "People do not buy from brands. They buy from brands they feel they know." },
 
       { type: "h2", id: "paid-social", text: "Scale with paid social ads" },
+      { type: "image", src: photo("1460925895917-afdab827c52f"), alt: "Laptop showing a campaign analytics dashboard", caption: "Test small, find winners, then scale what works." },
       { type: "p", text: "Once you know which posts your audience loves, paid ads let you multiply the results. Our approach is simple: test many creatives on small budgets, find the winners using real data, then scale the budget behind them." },
       { type: "steps", items: [
         { t: "Awareness", d: "Video views and reach campaigns to introduce your brand to new, relevant people." },
@@ -90,6 +100,7 @@ export const posts: Post[] = [
       { type: "tip", text: "Install the Meta Pixel and Conversions API before you spend a single rupee or dollar. Without tracking, you are guessing." },
 
       { type: "h2", id: "measure", text: "Measure what actually matters" },
+      { type: "image", src: photo("1551288049-bebda4e38f71"), alt: "Monitor displaying detailed traffic and engagement charts", caption: "Track the numbers that connect posts to revenue." },
       { type: "p", text: "Likes feel good, but they do not pay the bills. Track the numbers that connect social activity to business growth:" },
       { type: "list", items: [
         "Reach and impressions — how many new people see you.",
@@ -100,6 +111,7 @@ export const posts: Post[] = [
       ] },
 
       { type: "h2", id: "mistakes", text: "Common mistakes to avoid" },
+      { type: "image", src: photo("1533750349088-cd871a92f312"), alt: "Desk with a handwritten marketing strategy note and books", caption: "Most mistakes come from skipping the strategy step." },
       { type: "list", items: [
         "Posting without a plan, then disappearing for weeks.",
         "Copy-pasting the same content to every platform without adapting it.",
@@ -109,6 +121,11 @@ export const posts: Post[] = [
         "Never looking at analytics.",
       ] },
 
+      { type: "gallery", items: [
+        { src: photo("1616469829581-73993eb86b02", 900), alt: "LinkedIn app page open on a tablet" },
+        { src: photo("1556761175-b413da4baf72", 900), alt: "Marketing team working together in a bright office" },
+        { src: photo("1598128558393-70ff21433be0", 900), alt: "Instagram app open on a phone beside a tablet" },
+      ] },
       { type: "h2", id: "conclusion", text: "Ready to grow on social?" },
       { type: "p", text: "Social media marketing rewards brands that show up consistently, create genuinely useful content, listen to their community and let data guide every decision. Do that, and social becomes your most reliable source of new customers." },
       { type: "p", text: "At Tech Marketics, we plan, create, publish and advertise for you — with clear monthly reports so you always know what is working. Book a free strategy call and we will audit your social presence and show you exactly where your next customers are hiding." },

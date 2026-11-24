@@ -16,7 +16,7 @@ export const Route = createFileRoute("/blog/$slug")({
     const p = loaderData?.post;
     const title = p ? `${p.title} — Tech Marketics Blog` : "Article not found — Tech Marketics";
     const description = p?.excerpt ?? "This article could not be found.";
-    return { meta: [ { title }, { name: "description", content: description }, { property: "og:title", content: title }, { property: "og:description", content: description }, { property: "og:type", content: "article" }, { name: "twitter:card", content: "summary_large_image" }, ...(p ? [] : [{ name: "robots", content: "noindex" }]) ] };
+    return { meta: [ { title }, { name: "description", content: description }, { property: "og:title", content: title }, { property: "og:description", content: description }, { property: "og:type", content: "article" }, ...(p ? [{ property: "og:image", content: p.ogImage }, { name: "twitter:image", content: p.ogImage }] : []), { name: "twitter:card", content: "summary_large_image" }, ...(p ? [] : [{ name: "robots", content: "noindex" }]) ] };
   },
   notFoundComponent: () => (
     <div className="px-6 pb-24 pt-40 text-center">
@@ -71,6 +71,25 @@ function BlockView({ b, i }: { b: Block; i: number }) {
             <motion.div key={s.l} initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: k * 0.1 }} className="rounded-3xl glass p-6 text-center">
               <p className="font-display text-4xl font-bold text-primary">{s.v}</p>
               <p className="mt-2 text-sm text-muted-foreground">{s.l}</p>
+            </motion.div>
+          ))}
+        </div>
+      );
+    case "image":
+      return (
+        <motion.figure initial={{ opacity: 0, y: 40, scale: 0.97 }} whileInView={{ opacity: 1, y: 0, scale: 1 }} viewport={{ once: true, margin: "-60px" }} transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }} className="group">
+          <div className="overflow-hidden rounded-3xl border border-border">
+            <img src={b.src} alt={b.alt} loading="lazy" className="aspect-[16/9] w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+          </div>
+          <figcaption className="mt-3 flex items-center gap-2 text-sm text-muted-foreground"><span className="h-px w-6 bg-primary" />{b.caption}</figcaption>
+        </motion.figure>
+      );
+    case "gallery":
+      return (
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+          {b.items.map((g, k) => (
+            <motion.div key={g.src} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: k * 0.12, duration: 0.7 }} className={`group overflow-hidden rounded-3xl border border-border ${k === 0 ? "col-span-2 md:col-span-1" : ""}`}>
+              <img src={g.src} alt={g.alt} loading="lazy" className="aspect-[4/5] h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
             </motion.div>
           ))}
         </div>
