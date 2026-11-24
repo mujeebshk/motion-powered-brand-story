@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
-import { Menu, X, ArrowUpRight } from "lucide-react";
+import { Menu, X, ArrowUpRight, Sun, Moon } from "lucide-react";
 import logo from "@/assets/tech-marketics-logo.png.asset.json";
 import { Magnetic } from "./motion";
 
@@ -22,6 +22,27 @@ export function CtaButton({ children, to = "/contact", variant = "solid" }: { ch
   );
 }
 
+export function ThemeToggle() {
+  const [light, setLight] = useState(false);
+  useEffect(() => { setLight(document.documentElement.classList.contains("light")); }, []);
+  const toggle = () => {
+    const next = !light; setLight(next);
+    const d = document.documentElement;
+    d.classList.toggle("light", next); d.classList.toggle("dark", !next);
+    try { localStorage.setItem("theme", next ? "light" : "dark"); } catch { /* ignore */ }
+  };
+  return (
+    <button onClick={toggle} aria-label={light ? "Switch to dark theme" : "Switch to light theme"}
+      className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full glass text-foreground transition-colors hover:border-primary">
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.span key={light ? "sun" : "moon"} initial={{ y: 20, rotate: -90, opacity: 0 }} animate={{ y: 0, rotate: 0, opacity: 1 }} exit={{ y: -20, rotate: 90, opacity: 0 }} transition={{ duration: 0.3 }}>
+          {light ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+        </motion.span>
+      </AnimatePresence>
+    </button>
+  );
+}
+
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
@@ -29,14 +50,14 @@ export function Navbar() {
   return (
     <motion.header initial={{ y: -80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.8, delay: 0.2 }} className="fixed inset-x-0 top-4 z-50 px-4">
       <div className={`mx-auto flex max-w-6xl items-center justify-between rounded-full px-5 py-2.5 transition-all ${scrolled ? "glass" : ""}`}>
-        <Link to="/" className="shrink-0"><img src={logo.url} alt="Tech Marketics" className="h-10 w-auto scale-[1.6] origin-left" /></Link>
+        <Link to="/" className="shrink-0"><img src={logo.url} alt="Tech Marketics" className="h-10 w-auto scale-[1.6] origin-left [.light_&]:rounded-lg [.light_&]:bg-foreground [.light_&]:px-1" /></Link>
         <nav className="hidden items-center gap-1 md:flex">
           {nav.map((n) => (
             <Link key={n.to} to={n.to} activeOptions={{ exact: true }} className="rounded-full px-4 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground" activeProps={{ className: "text-primary" }}>{n.label}</Link>
           ))}
         </nav>
-        <div className="hidden md:block"><CtaButton>Book a Call</CtaButton></div>
-        <button aria-label="Menu" className="md:hidden" onClick={() => setOpen(!open)}>{open ? <X /> : <Menu />}</button>
+        <div className="flex items-center gap-3"><ThemeToggle /><div className="hidden md:block"><CtaButton>Book a Call</CtaButton></div>
+        <button aria-label="Menu" className="md:hidden" onClick={() => setOpen(!open)}>{open ? <X /> : <Menu />}</button></div>
       </div>
       <AnimatePresence>
         {open && (
