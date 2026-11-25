@@ -14,8 +14,8 @@ export function CtaButton({ children, to = "/contact", variant = "solid" }: { ch
   return (
     <Magnetic>
       <Link to={to} className={variant === "solid"
-        ? "group inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-semibold text-primary-foreground transition-shadow hover:glow"
-        : "group inline-flex items-center gap-2 rounded-full glass px-6 py-3 font-semibold text-foreground transition-colors hover:border-primary"}>
+        ? "group inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-semibold text-primary-foreground shadow-sm transition-all duration-300 hover:brightness-105 hover:glow"
+        : "group inline-flex items-center gap-2 rounded-full glass px-6 py-3 font-semibold text-foreground transition-all duration-300 hover:border-primary hover:text-primary hover:glow"}>
         {children}<ArrowUpRight className="h-4 w-4 transition-transform group-hover:rotate-45" />
       </Link>
     </Magnetic>
@@ -50,10 +50,12 @@ export function Navbar() {
   return (
     <motion.header initial={{ y: -80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.8, delay: 0.2 }} className="fixed inset-x-0 top-4 z-50 px-4">
       <div className={`mx-auto flex max-w-6xl items-center justify-between rounded-full px-5 py-2.5 transition-all ${scrolled ? "glass" : ""}`}>
-        <Link to="/" className="shrink-0"><img src={logo.url} alt="Tech Marketics" className="h-10 w-auto scale-[1.6] origin-left [.light_&]:rounded-lg [.light_&]:bg-foreground [.light_&]:px-1" /></Link>
+        <Link to="/" className="shrink-0 inline-flex items-center [.light_&]:rounded-full [.light_&]:bg-foreground [.light_&]:px-3.5 [.light_&]:py-1.5 [.light_&]:shadow-sm">
+          <img src={logo.url} alt="Tech Marketics" className="h-10 w-auto origin-left scale-[1.6] [.light_&]:h-7 [.light_&]:scale-100" />
+        </Link>
         <nav className="hidden items-center gap-1 md:flex">
           {nav.map((n) => (
-            <Link key={n.to} to={n.to} activeOptions={{ exact: true }} className="rounded-full px-4 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground" activeProps={{ className: "text-primary" }}>{n.label}</Link>
+            <Link key={n.to} to={n.to} activeOptions={{ exact: true }} className="rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary/70 hover:text-foreground" activeProps={{ className: "bg-accent text-accent-foreground" }}>{n.label}</Link>
           ))}
         </nav>
         <div className="flex items-center gap-3"><ThemeToggle /><div className="hidden md:block"><CtaButton>Book a Call</CtaButton></div>
@@ -75,7 +77,9 @@ export function Footer() {
     <footer className="relative mt-24 border-t border-border px-6 pb-10 pt-20">
       <div className="mx-auto grid max-w-6xl gap-12 md:grid-cols-4">
         <div className="md:col-span-2">
-          <img src={logo.url} alt="Tech Marketics" className="h-16 w-auto scale-150 origin-left" />
+          <div className="inline-flex items-center [.light_&]:rounded-2xl [.light_&]:bg-foreground [.light_&]:px-4 [.light_&]:py-2 [.light_&]:shadow-sm">
+            <img src={logo.url} alt="Tech Marketics" className="h-16 w-auto origin-left scale-150 [.light_&]:h-10 [.light_&]:scale-100" />
+          </div>
           <p className="mt-6 max-w-sm text-muted-foreground">Digital marketing & web development studio helping brands grow faster with data, design and performance.</p>
         </div>
         <div><h4 className="mb-4 font-semibold">Pages</h4>{nav.map((n) => <Link key={n.to} to={n.to} className="block py-1 text-muted-foreground hover:text-primary">{n.label}</Link>)}</div>
