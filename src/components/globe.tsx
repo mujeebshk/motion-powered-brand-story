@@ -27,18 +27,9 @@ export function Globe({ places, className = "" }: { places: GlobePlace[]; classN
     const ctx: CanvasRenderingContext2D = ctx0;
     let raf = 0;
     let alive = true;
-    let isLight = document.documentElement.classList.contains("light");
-    let lime = "";
-    let fg = "";
-    const syncTheme = () => {
-      isLight = document.documentElement.classList.contains("light");
-      const css = getComputedStyle(document.documentElement);
-      lime = css.getPropertyValue("--lime").trim() || "#C6FF00";
-      fg = isLight ? "#f8fafc" : (css.getPropertyValue("--foreground").trim() || "#fff");
-    };
-    syncTheme();
-    const observer = new MutationObserver(syncTheme);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    const css = getComputedStyle(document.documentElement);
+    const lime = css.getPropertyValue("--lime").trim() || "#C6FF00";
+    const fg = css.getPropertyValue("--foreground").trim() || "#fff";
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     let rot = 0.4;
@@ -105,13 +96,9 @@ export function Globe({ places, className = "" }: { places: GlobePlace[]; classN
 
       // sphere body + rim glow
       const g = ctx.createRadialGradient(cx - R * 0.3, cy - R * 0.4, R * 0.1, cx, cy, R);
-      if (isLight) {
-        g.addColorStop(0, "rgba(16,185,129,0.22)"); g.addColorStop(0.65, "rgba(15,32,46,0.92)"); g.addColorStop(1, "rgba(11,22,34,0.98)");
-      } else {
-        g.addColorStop(0, "rgba(198,255,0,0.10)"); g.addColorStop(0.7, "rgba(20,24,16,0.85)"); g.addColorStop(1, "rgba(10,12,8,0.95)");
-      }
+      g.addColorStop(0, "rgba(198,255,0,0.10)"); g.addColorStop(0.7, "rgba(20,24,16,0.85)"); g.addColorStop(1, "rgba(10,12,8,0.95)");
       ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.fillStyle = g; ctx.fill();
-      ctx.save(); ctx.shadowColor = isLight ? "rgba(16,185,129,0.45)" : lime; ctx.shadowBlur = isLight ? 28 : 40; ctx.strokeStyle = isLight ? "#34d399" : lime; ctx.globalAlpha = isLight ? 0.5 : 0.35; ctx.lineWidth = 1.2; ctx.stroke(); ctx.restore();
+      ctx.save(); ctx.shadowColor = lime; ctx.shadowBlur = 40; ctx.strokeStyle = lime; ctx.globalAlpha = 0.35; ctx.lineWidth = 1.2; ctx.stroke(); ctx.restore();
 
       // land dots
       ctx.fillStyle = fg;
@@ -172,7 +159,6 @@ export function Globe({ places, className = "" }: { places: GlobePlace[]; classN
     raf = requestAnimationFrame(draw);
     return () => {
       alive = false; cancelAnimationFrame(raf);
-      observer.disconnect();
       canvas.removeEventListener("pointerdown", onDown); canvas.removeEventListener("pointermove", onMove);
       canvas.removeEventListener("pointerup", onUp); canvas.removeEventListener("pointercancel", onUp);
     };
