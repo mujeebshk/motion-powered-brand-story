@@ -44,16 +44,20 @@ export function ThemeToggle() {
 }
 
 export function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
-  useEffect(() => { const f = () => setScrolled(window.scrollY > 30); f(); window.addEventListener("scroll", f); return () => window.removeEventListener("scroll", f); }, []);
   return (
-    <motion.header initial={{ y: -80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.8, delay: 0.2 }} className="fixed inset-x-0 top-4 z-50 px-4">
-      <div className={`mx-auto flex max-w-6xl items-center justify-between rounded-full px-5 py-2.5 transition-all ${scrolled ? "glass" : ""}`}>
+    <motion.header initial={{ y: -80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.7, delay: 0.1 }} className="fixed inset-x-0 top-4 z-50 px-4">
+      <div className="mx-auto flex max-w-6xl items-center justify-between rounded-full glass bg-background/70 px-5 py-2.5 transition-all">
         <Link to="/" className="shrink-0"><img src={logo.url} alt="Tech Marketics" className="h-10 w-auto scale-[1.6] origin-left [.light_&]:rounded-lg [.light_&]:bg-foreground [.light_&]:px-1" /></Link>
         <nav className="hidden items-center gap-1 md:flex">
           {nav.map((n) => (
-            <Link key={n.to} to={n.to} activeOptions={{ exact: true }} className="rounded-full px-4 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground" activeProps={{ className: "text-primary" }}>{n.label}</Link>
+            <Link
+              key={n.to}
+              to={n.to}
+              activeOptions={{ exact: true }}
+              className="relative rounded-full px-4 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground after:absolute after:inset-x-3 after:-bottom-2.5 after:h-0.5 after:rounded-full after:bg-primary after:opacity-0 after:transition-opacity"
+              activeProps={{ className: "text-primary after:opacity-100" }}
+            >{n.label}</Link>
           ))}
         </nav>
         <div className="flex items-center gap-3"><ThemeToggle /><div className="hidden md:block"><CtaButton>Book a Call</CtaButton></div>

@@ -27,13 +27,20 @@ export function Globe({ places, className = "" }: { places: GlobePlace[]; classN
     const ctx: CanvasRenderingContext2D = ctx0;
     let raf = 0;
     let alive = true;
-    const css = getComputedStyle(document.documentElement);
-    const lime = css.getPropertyValue("--lime").trim() || "#C6FF00";
-    const fg = css.getPropertyValue("--foreground").trim() || "#fff";
+    let lime = "#C6FF00";
+    let fg = "#fff";
+    const readTheme = () => {
+      const css = getComputedStyle(document.documentElement);
+      lime = css.getPropertyValue("--lime").trim() || "#C6FF00";
+      fg = css.getPropertyValue("--foreground").trim() || "#fff";
+    };
+    readTheme();
+    const obs = new MutationObserver(readTheme);
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    let rot = 0.4;
-    const tilt = -0.32;
+    let rot = 0.35;
+    const tilt = -0.26;
     let drag: { x: number; rot: number } | null = null;
     let vel = 0;
 
@@ -64,7 +71,7 @@ export function Globe({ places, className = "" }: { places: GlobePlace[]; classN
       octx.fill();
       const img = octx.getImageData(0, 0, W, H).data;
       const out: V3[] = [];
-      const step = 1.5;
+      const step = 1.35;
       for (let lat = -58; lat <= 84; lat += step) {
         const n = Math.max(1, Math.round((360 / step) * Math.cos(lat * RAD)));
         for (let i = 0; i < n; i++) {
@@ -79,6 +86,11 @@ export function Globe({ places, className = "" }: { places: GlobePlace[]; classN
     const pv = places.map((p) => toV(p.lng, p.lat));
     const n = pv.length;
     const arcs = pv.flatMap((from, i) => [5].map((k) => ({ from, to: pv[(i + k) % n]!, offset: (i * 0.41) % 1.6 })));
+    const rings = [
+      { rx: 1.24, ry: 0.42, rot: -0.36, speed: 0.35 },
+      { rx: 1.18, ry: 0.48, rot: 0.44, speed: -0.28 },
+      { rx: 1.12, ry: 0.96, rot: -0.18, speed: 0.22 },
+    ];
 
     const start = performance.now();
     const draw = (now: number) => {
@@ -88,31 +100,52 @@ export function Globe({ places, className = "" }: { places: GlobePlace[]; classN
       if (canvas.width !== Math.round(w * dpr)) { canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr); }
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, w, h);
-      const R = Math.min(w, h) * 0.4, cx = w / 2, cy = h / 2;
+      const R = Math.min(w, h) * 0.38, cx = w / 2, cy = h / 2;
 
       if (!drag) { if (Math.abs(vel) > 0.0005) { rot += vel; vel *= 0.95; } else if (!reduce) rot += 0.0016; }
       const cr = Math.cos(rot), sr = Math.sin(rot), ct = Math.cos(tilt), st = Math.sin(tilt);
       const tf = (v: V3): V3 => { const x = v[0] * cr + v[2] * sr, z0 = -v[0] * sr + v[2] * cr; const y = v[1] * ct - z0 * st, z = v[1] * st + z0 * ct; return [x, y, z]; };
 
-      // sphere body + rim glow
-      const g = ctx.createRadialGradient(cx - R * 0.3, cy - R * 0.4, R * 0.1, cx, cy, R);
-      g.addColorStop(0, "rgba(198,255,0,0.10)"); g.addColorStop(0.7, "rgba(20,24,16,0.85)"); g.addColorStop(1, "rgba(10,12,8,0.95)");
+      // outer orbital rings (back half)
+      const drawRingHalf = (back: boolean) => {
+        for (const r of rings) {
+          ctx.save();
+          ctx.translate(cx, cy);
+          ctx.rotate(r.rot);
+          ctx.beginPath();
+          ctx.ellipse(0, 0, R * r.rx, R * r.ry, 0, back ? Math.PI : 0, back ? Math.PI * 2 : Math.PI);
+          ctx.strokeStyle = lime;
+          ctx.shadowColor = lime;
+          ctx.shadowBlur = back ? 6 : 16;
+          ctx.globalAlpha = back ? 0.22 : 0.65;
+          ctx.lineWidth = back ? 1 : 1.5;
+          ctx.stroke();
+          ctx.restore();
+        }
+      };
+      drawRingHalf(true);
+
+      // sphere body + vivid lime Fresnel rim glow
+      const g = ctx.createRadialGradient(cx - R * 0.25, cy - R * 0.25, R * 0.15, cx, cy, R);
+      g.addColorStop(0, "rgba(14,18,12,0.92)"); g.addColorStop(0.72, "rgba(12,18,9,0.94)"); g.addColorStop(0.92, "rgba(165,245,0,0.16)"); g.addColorStop(1, "rgba(198,255,0,0.34)");
       ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.fillStyle = g; ctx.fill();
-      ctx.save(); ctx.shadowColor = lime; ctx.shadowBlur = 40; ctx.strokeStyle = lime; ctx.globalAlpha = 0.35; ctx.lineWidth = 1.2; ctx.stroke(); ctx.restore();
+      ctx.save(); ctx.shadowColor = lime; ctx.shadowBlur = 44; ctx.strokeStyle = lime; ctx.globalAlpha = 0.85; ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
+      ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.strokeStyle = lime; ctx.globalAlpha = 0.95; ctx.lineWidth = 1.1; ctx.stroke(); ctx.restore();
 
       // land dots
       ctx.fillStyle = fg;
       for (const d of dots) {
         const p = tf(d);
         if (p[2] <= 0) continue;
-        ctx.globalAlpha = 0.15 + p[2] * 0.55;
-        ctx.fillRect(cx + p[0] * R - 0.8, cy - p[1] * R - 0.8, 1.6, 1.6);
+        ctx.globalAlpha = 0.22 + p[2] * 0.72;
+        ctx.fillRect(cx + p[0] * R - 0.85, cy - p[1] * R - 0.85, 1.7, 1.7);
       }
       ctx.globalAlpha = 1;
 
       // arcs
       const SEG = 60;
       ctx.lineCap = "round";
+      ctx.shadowColor = lime;
       for (const a of arcs) {
         const cyc = ((t * 0.28 + a.offset) % 1.6);
         const head = Math.min(1, cyc / 0.9), tail = Math.max(0, (cyc - 0.9) / 0.7);
@@ -128,19 +161,27 @@ export function Globe({ places, className = "" }: { places: GlobePlace[]; classN
           const sx = cx + p[0] * R, sy = cy - p[1] * R;
           if (prev && prev[2] && vis) {
             ctx.beginPath(); ctx.moveTo(prev[0], prev[1]); ctx.lineTo(sx, sy);
-            ctx.strokeStyle = lime; ctx.globalAlpha = 0.25 + 0.75 * ((u - tail) / Math.max(0.001, head - tail)); ctx.lineWidth = 1.8; ctx.stroke();
+            ctx.strokeStyle = lime; ctx.shadowBlur = 10; ctx.globalAlpha = 0.35 + 0.65 * ((u - tail) / Math.max(0.001, head - tail)); ctx.lineWidth = 2; ctx.stroke();
           }
           prev = [sx, sy, vis];
         }
-        ctx.globalAlpha = 1;
+        ctx.shadowBlur = 0; ctx.globalAlpha = 1;
         if (head >= 1 && tail < 0.5) ripple(a.to, (cyc - 0.9) / 0.35);
       }
       pv.forEach((v, i) => dot(v, ((t * 0.7 + i * 0.13) % 1)));
+      drawRingHalf(false);
 
       function dot(v: V3, pulse: number) {
         const p = tf(v);
         if (p[2] <= 0.05) return;
         const sx = cx + p[0] * R, sy = cy - p[1] * R;
+        const glow = ctx.createRadialGradient(sx, sy, 0, sx, sy, 12);
+        glow.addColorStop(0, "rgba(230,255,140,0.85)");
+        glow.addColorStop(0.4, "rgba(198,255,0,0.35)");
+        glow.addColorStop(1, "rgba(198,255,0,0)");
+        ctx.fillStyle = glow;
+        ctx.globalAlpha = p[2];
+        ctx.beginPath(); ctx.arc(sx, sy, 12, 0, Math.PI * 2); ctx.fill();
         ctx.beginPath(); ctx.arc(sx, sy, 3 + pulse * 8, 0, Math.PI * 2);
         ctx.strokeStyle = lime; ctx.globalAlpha = (1 - pulse) * p[2] * 0.7; ctx.lineWidth = 1.2; ctx.stroke();
         ctx.beginPath(); ctx.arc(sx, sy, 2.5, 0, Math.PI * 2); ctx.fillStyle = lime; ctx.globalAlpha = p[2]; ctx.fill();
@@ -158,7 +199,7 @@ export function Globe({ places, className = "" }: { places: GlobePlace[]; classN
     };
     raf = requestAnimationFrame(draw);
     return () => {
-      alive = false; cancelAnimationFrame(raf);
+      alive = false; cancelAnimationFrame(raf); obs.disconnect();
       canvas.removeEventListener("pointerdown", onDown); canvas.removeEventListener("pointermove", onMove);
       canvas.removeEventListener("pointerup", onUp); canvas.removeEventListener("pointercancel", onUp);
     };

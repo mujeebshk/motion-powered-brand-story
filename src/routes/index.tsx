@@ -1,12 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { TrendingUp, Star } from "lucide-react";
-import { Reveal, WordReveal, Counter, Tilt } from "@/components/motion";
-import { CtaButton } from "@/components/site";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { motion } from "framer-motion";
+import { TrendingUp, Star, ChevronRight } from "lucide-react";
+import { Reveal, WordReveal, Counter, Tilt, Magnetic } from "@/components/motion";
 import { services, FinalCta } from "@/components/sections";
 import { Ecosystem } from "@/components/ecosystem";
-import { GlobalReach } from "@/components/global-reach";
-import { HeroDecor } from "@/components/hero-decor";
+import { places } from "@/components/global-reach";
+import { Globe } from "@/components/globe";
+import { HeroStatPills, HeroCountryBar } from "@/components/hero-reach";
 import { Industries } from "@/components/industries";
 
 export const Route = createFileRoute("/")({
@@ -24,59 +24,62 @@ export const Route = createFileRoute("/")({
 });
 
 function Hero() {
-  const { scrollY } = useScroll();
-  const y = useTransform(scrollY, [0, 600], [0, 200]);
-  const scale = useTransform(scrollY, [0, 600], [1, 1.3]);
   return (
-    <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 pt-32 text-center">
-      <motion.div style={{ y, scale }} aria-hidden className="absolute left-1/2 top-[55%] h-[900px] w-[900px] -translate-x-1/2">
-        <div className="absolute inset-0 rounded-full arc spin-slow" />
-        <div className="absolute inset-[18%] rounded-full bg-lime/20 blur-[100px]" />
-        <div className="absolute inset-[16%] rounded-full border border-primary/30 bg-background shadow-[inset_0_40px_80px_-20px] shadow-primary/40" />
-      </motion.div>
-      <HeroDecor />
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="relative mb-8 inline-flex items-center gap-2 rounded-full glass px-4 py-1.5 text-sm">
-        <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground">New</span>
-        AI-powered growth campaigns
-      </motion.div>
-      <h1 className="relative max-w-5xl text-5xl font-bold leading-[1.05] md:text-8xl">
-        <WordReveal text="Grow Faster." /><br />
-        <WordReveal text="Rank Higher." className="text-gradient" /><br />
-        <WordReveal text="Sell More." />
-      </h1>
-      <Reveal delay={0.9}><p className="relative mx-auto mt-8 max-w-xl text-lg text-muted-foreground">We blend data, design and technology to turn your brand into a growth machine — from first click to loyal customer.</p></Reveal>
-      <Reveal delay={1.1} className="relative mt-10 flex flex-wrap justify-center gap-4">
-        <CtaButton>Book a Free Strategy Call</CtaButton>
-        <CtaButton to="/work" variant="ghost">See Our Work</CtaButton>
-      </Reveal>
-      <Reveal delay={1.4} className="relative mt-20 w-full max-w-5xl"><Dashboard /></Reveal>
-    </section>
-  );
-}
+    <section className="relative overflow-hidden px-6 pb-14 pt-28 md:pt-32 lg:min-h-[calc(100vh-1rem)] lg:flex lg:flex-col lg:justify-center">
+      <div aria-hidden className="pointer-events-none absolute -left-24 top-1/2 h-80 w-80 -translate-y-1/2 rounded-full bg-lime/20 blur-[120px]" />
+      <div aria-hidden className="pointer-events-none absolute -right-24 top-16 h-96 w-96 rounded-full bg-lime/15 blur-[130px]" />
+      <div aria-hidden className="pointer-events-none absolute bottom-0 right-1/4 h-72 w-72 rounded-full bg-lime/15 blur-[130px]" />
 
-function Dashboard() {
-  const bars = [40, 65, 45, 80, 60, 95, 75, 100, 85, 70, 90, 110];
-  return (
-    <div className="rounded-3xl glass bg-card/60 p-6 text-left">
-      <div className="mb-6 flex items-center justify-between">
-        <p className="font-display text-lg font-semibold">Growth Dashboard</p>
-        <span className="rounded-full bg-accent px-3 py-1 text-xs text-accent-foreground">Live</span>
-      </div>
-      <div className="grid gap-4 md:grid-cols-4">
-        {[["Traffic", "248K", "+64%"], ["Leads", "3,912", "+128%"], ["ROAS", "6.4x", "+2.1x"], ["Revenue", "$1.2M", "+87%"]].map(([k, v, c]) => (
-          <div key={k} className="rounded-2xl bg-secondary/60 p-4">
-            <p className="text-xs text-muted-foreground">{k}</p>
-            <p className="mt-1 font-display text-2xl font-bold">{v}</p>
-            <p className="text-xs text-primary">{c}</p>
+      <div className="relative mx-auto w-full max-w-6xl">
+        <div className="grid items-center gap-10 lg:grid-cols-[1.12fr_0.88fr] lg:gap-6">
+          <div className="relative z-10 text-left">
+            <motion.p
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="text-xs font-semibold uppercase tracking-[0.26em] text-primary md:text-sm"
+            >
+              Global Reach
+            </motion.p>
+            <h1 className="mt-4 text-5xl font-bold leading-[1.04] tracking-tight sm:text-6xl lg:text-[4.25rem]">
+              <WordReveal text="Growing brands" /><br />
+              <WordReveal text="all over" />
+              <WordReveal text="the world." className="text-primary" />
+            </h1>
+            <Reveal delay={0.45}>
+              <p className="mt-6 max-w-lg text-base text-muted-foreground md:text-lg">
+                Campaigns, websites and rankings that work across every continent and time zone – wherever your customers are.
+              </p>
+            </Reveal>
+            <Reveal delay={0.6} className="mt-8 flex flex-wrap items-center gap-4">
+              <Magnetic>
+                <Link to="/contact" className="group inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground transition-shadow hover:glow md:text-base">
+                  Book a Free Strategy Call <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Link>
+              </Magnetic>
+              <Magnetic>
+                <Link to="/work" className="group inline-flex items-center gap-2 rounded-full border border-foreground/40 bg-background/30 px-6 py-3.5 text-sm font-semibold text-foreground backdrop-blur-md transition-colors hover:border-primary hover:text-primary md:text-base">
+                  See Our Work <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Link>
+              </Magnetic>
+            </Reveal>
+            <HeroStatPills />
           </div>
-        ))}
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.85, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            className="relative mx-auto aspect-square w-full max-w-[460px] lg:max-w-[520px]"
+          >
+            <div aria-hidden className="pointer-events-none absolute inset-[10%] rounded-full bg-lime/25 blur-[95px]" />
+            <Globe places={places} className="relative" />
+          </motion.div>
+        </div>
+
+        <HeroCountryBar />
       </div>
-      <div className="mt-6 flex h-32 items-end gap-2">
-        {bars.map((b, i) => (
-          <motion.div key={i} initial={{ height: 0 }} whileInView={{ height: `${(b / 110) * 100}%` }} viewport={{ once: true }} transition={{ delay: 0.05 * i, duration: 0.8 }} className="flex-1 rounded-t-md bg-gradient-to-t from-primary/20 to-primary" />
-        ))}
-      </div>
-    </div>
+    </section>
   );
 }
 
@@ -185,5 +188,5 @@ function Testimonials() {
 }
 
 function Home() {
-  return (<><Hero /><Industries /><Services /><Ecosystem /><GlobalReach /><Stats /><Feature /><Process /><Testimonials /><FinalCta /></>);
+  return (<><Hero /><Industries /><Services /><Ecosystem /><Stats /><Feature /><Process /><Testimonials /><FinalCta /></>);
 }
